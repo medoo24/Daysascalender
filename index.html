@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Calendar Builder</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="app-header">
+    <div>
+      <p class="eyebrow">Printable planning tool</p>
+      <h1>Smart Calendar Builder</h1>
+      <p class="subtitle">Build any-length day table, style it, color-code it, and print it as PDF.</p>
+    </div>
+    <div class="header-actions">
+      <button id="savePresetBtn" class="btn secondary">Save preset</button>
+      <button id="loadPresetBtn" class="btn secondary">Load preset</button>
+      <button id="exportBtn" class="btn secondary">Export settings</button>
+      <label class="btn secondary file-label">
+        Import settings
+        <input id="importInput" type="file" accept=".json,application/json" hidden />
+      </label>
+      <button id="printBtn" class="btn primary">Print / Save PDF</button>
+    </div>
+  </header>
+
+  <main class="app-shell">
+    <aside class="control-panel" aria-label="Calendar settings">
+      <div class="panel-toolbar">
+        <button class="tab-btn active" data-tab="basic">Basic</button>
+        <button class="tab-btn" data-tab="layout">Layout</button>
+        <button class="tab-btn" data-tab="style">Style</button>
+        <button class="tab-btn" data-tab="colors">Colors</button>
+        <button class="tab-btn" data-tab="advanced">Advanced</button>
+      </div>
+
+      <section class="tab-panel active" id="tab-basic">
+        <h2>Calendar content</h2>
+
+        <div class="field-grid two">
+          <label class="field">
+            <span>Start date</span>
+            <input id="startDate" type="date" />
+          </label>
+
+          <label class="field">
+            <span>Total days</span>
+            <input id="totalDays" type="number" min="1" max="1000" value="70" />
+          </label>
+        </div>
+
+        <div class="field-grid two">
+          <label class="field">
+            <span>Days per row</span>
+            <input id="daysPerRow" type="number" min="1" max="31" value="7" />
+          </label>
+
+          <label class="field">
+            <span>Rows per page</span>
+            <select id="rowsPerPageMode">
+              <option value="auto">Automatic</option>
+              <option value="custom">Custom</option>
+            </select>
+          </label>
+        </div>
+
+        <label class="field" id="customRowsField" hidden>
+          <span>Custom rows per page</span>
+          <input id="rowsPerPage" type="number" min="1" max="40" value="7" />
+        </label>
+
+        <div class="switch-row">
+          <label class="switch">
+            <input id="showWeekday" type="checkbox" checked />
+            <span class="slider"></span>
+          </label>
+          <div>
+            <strong>Show weekday name</strong>
+            <small>Display the weekday above each date.</small>
+          </div>
+        </div>
+
+        <div class="field-grid two">
+          <label class="field">
+            <span>Date label format</span>
+            <select id="dateFormat">
+              <option value="d/m">17/7</option>
+              <option value="dd/mm">17/07</option>
+              <option value="d">17</option>
+              <option value="d-m">17-7</option>
+              <option value="custom">Custom template</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>Weekday style</span>
+            <select id="weekdayFormat">
+              <option value="short">Mon</option>
+              <option value="long">Monday</option>
+              <option value="narrow">M</option>
+            </select>
+          </label>
+        </div>
+
+        <label class="field" id="customTemplateField" hidden>
+          <span>Custom date template</span>
+          <input id="customTemplate" type="text" value="{d}/{m}" placeholder="{weekdayShort} {d}/{m}" />
+          <small>Tokens: {d}, {dd}, {m}, {mm}, {yy}, {yyyy}, {weekday}, {weekdayShort}</small>
+        </label>
+
+        <label class="field">
+          <span>Calendar title</span>
+          <input id="calendarTitle" type="text" value="70-Day Plan" placeholder="Project plan, study calendar..." />
+        </label>
+
+        <label class="field">
+          <span>Subtitle / note</span>
+          <input id="calendarSubtitle" type="text" value="" placeholder="Optional subtitle" />
+        </label>
+      </section>
+
+      <section class="tab-panel" id="tab-layout">
+        <h2>Page and auto-fit</h2>
+
+        <div class="field-grid two">
+          <label class="field">
+            <span>Paper size</span>
+            <select id="paperSize">
+              <option value="A4">A4</option>
+              <option value="A3">A3</option>
+              <option value="Letter">Letter</option>
+              <option value="Legal">Legal</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>Orientation</span>
+            <select id="orientation">
+              <option value="landscape">Landscape</option>
+              <option value="portrait">Portrait</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="field-grid two">
+          <label class="field">
+            <span>Page margin (mm)</span>
+            <input id="pageMargin" type="number" min="3" max="30" value="10" />
+          </label>
+
+          <label class="field">
+            <span>Cell gap (mm)</span>
+            <input id="cellGap" type="number" min="0" max="10" step="0.5" value="2" />
+          </label>
+        </div>
+
+        <div class="switch-row">
+          <label class="switch">
+            <input id="autoFit" type="checkbox" checked />
+            <span class="slider"></span>
+          </label>
+          <div>
+            <strong>Smart auto-fit</strong>
+            <small>Calculates practical rows, cell height, and text sizes for the chosen paper.</small>
+          </div>
+        </div>
+
+        <div class="field-grid two">
+          <label class="field">
+            <span>Preferred page count</span>
+            <select id="preferredPages">
+              <option value="auto">Automatic</option>
+              <option value="1">1 page</option>
+              <option value="2">2 pages</option>
+              <option value="3">3 pages</option>
+              <option value="4">4 pages</option>
+              <option value="5">5 pages</option>
+              <option value="6">6 pages</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>Empty writing area</span>
+            <select id="writingStyle">
+              <option value="blank">Blank box</option>
+              <option value="lines">Writing lines</option>
+              <option value="dots">Dot grid</option>
+              <option value="checklist">Checklist</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="field-grid two">
+          <label class="field">
+            <span>Lines / checklist rows</span>
+            <input id="writingLines" type="number" min="1" max="12" value="4" />
+          </label>
+
+          <label class="field">
+            <span>Cell minimum height (mm)</span>
+            <input id="cellMinHeight" type="number" min="15" max="120" value="35" />
+          </label>
+        </div>
+
+        <div class="fit-summary" id="fitSummary"></div>
+      </section>
+
+      <section class="tab-panel" id="tab-style">
+        <h2>Typography and sizing</h2>
+
+        <div class="range-field">
+          <div><span>Title size</span><output id="titleSizeOut">24px</output></div>
+          <input id="titleSize" type="range" min="14" max="48" value="24" />
+        </div>
+
+        <div class="range-field">
+          <div><span>Date size</span><output id="dateSizeOut">18px</output></div>
+          <input id="dateSize" type="range" min="10" max="36" value="18" />
+        </div>
+
+        <div class="range-field">
+          <div><span>Weekday size</span><output id="weekdaySizeOut">11px</output></div>
+          <input id="weekdaySize" type="range" min="8" max="24" value="11" />
+        </div>
+
+        <div class="range-field">
+          <div><span>Year size</span><output id="yearSizeOut">14px</output></div>
+          <input id="yearSize" type="range" min="10" max="32" value="14" />
+        </div>
+
+        <div class="range-field">
+          <div><span>Cell border width</span><output id="borderWidthOut">1px</output></div>
+          <input id="borderWidth" type="range" min="0" max="5" value="1" />
+        </div>
+
+        <div class="range-field">
+          <div><span>Corner radius</span><output id="cornerRadiusOut">8px</output></div>
+          <input id="cornerRadius" type="range" min="0" max="24" value="8" />
+        </div>
+
+        <div class="field-grid two">
+          <label class="field">
+            <span>Font family</span>
+            <select id="fontFamily">
+              <option value="system">System sans</option>
+              <option value="serif">Classic serif</option>
+              <option value="mono">Monospace</option>
+              <option value="rounded">Rounded</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>Date alignment</span>
+            <select id="dateAlignment">
+              <option value="left">Left</option>
+              <option value="center">Center</option>
+              <option value="right">Right</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="switch-row">
+          <label class="switch">
+            <input id="boldYear" type="checkbox" checked />
+            <span class="slider"></span>
+          </label>
+          <div>
+            <strong>Bold year</strong>
+            <small>Emphasize the year in page headings or legend.</small>
+          </div>
+        </div>
+
+        <div class="switch-row">
+          <label class="switch">
+            <input id="showPageNumber" type="checkbox" checked />
+            <span class="slider"></span>
+          </label>
+          <div>
+            <strong>Show page number</strong>
+            <small>Add a small page counter in the footer.</small>
+          </div>
+        </div>
+      </section>
+
+      <section class="tab-panel" id="tab-colors">
+        <h2>Selection and color coding</h2>
+
+        <div class="selection-help">
+          Click a day to select it. Use <kbd>Shift</kbd> + click for a range, or drag across cells.
+        </div>
+
+        <div class="field-grid two">
+          <label class="field">
+            <span>Active fill color</span>
+            <input id="activeColor" type="color" value="#dbeafe" />
+          </label>
+
+          <label class="field">
+            <span>Text color</span>
+            <input id="activeTextColor" type="color" value="#172033" />
+          </label>
+        </div>
+
+        <div class="color-actions">
+          <button id="colorSelectedBtn" class="btn primary">Color selected</button>
+          <button id="clearSelectedColorBtn" class="btn secondary">Clear selected color</button>
+          <button id="clearSelectionBtn" class="btn secondary">Clear selection</button>
+        </div>
+
+        <div class="separator"></div>
+
+        <h3>Mass selection</h3>
+
+        <label class="field">
+          <span>Selection rule</span>
+          <select id="massRule">
+            <option value="dateRange">Date range</option>
+            <option value="weekday">Weekday</option>
+            <option value="month">Month</option>
+            <option value="everyNth">Every Nth day</option>
+            <option value="all">All days</option>
+          </select>
+        </label>
+
+        <div id="ruleDateRange" class="rule-panel">
+          <div class="field-grid two">
+            <label class="field">
+              <span>From</span>
+              <input id="rangeStart" type="date" />
+            </label>
+            <label class="field">
+              <span>To</span>
+              <input id="rangeEnd" type="date" />
+            </label>
+          </div>
+        </div>
+
+        <div id="ruleWeekday" class="rule-panel" hidden>
+          <label class="field">
+            <span>Weekday</span>
+            <select id="weekdayRule">
+              <option value="0">Sunday</option>
+              <option value="1">Monday</option>
+              <option value="2">Tuesday</option>
+              <option value="3">Wednesday</option>
+              <option value="4">Thursday</option>
+              <option value="5">Friday</option>
+              <option value="6">Saturday</option>
+            </select>
+          </label>
+        </div>
+
+        <div id="ruleMonth" class="rule-panel" hidden>
+          <label class="field">
+            <span>Month</span>
+            <select id="monthRule"></select>
+          </label>
+        </div>
+
+        <div id="ruleEveryNth" class="rule-panel" hidden>
+          <div class="field-grid two">
+            <label class="field">
+              <span>Every N days</span>
+              <input id="nthValue" type="number" min="2" max="100" value="7" />
+            </label>
+            <label class="field">
+              <span>Starting at day</span>
+              <input id="nthStart" type="number" min="1" value="1" />
+            </label>
+          </div>
+        </div>
+
+        <div class="color-actions">
+          <button id="selectByRuleBtn" class="btn secondary">Select matching days</button>
+          <button id="colorByRuleBtn" class="btn primary">Color matching days</button>
+        </div>
+
+        <div class="separator"></div>
+
+        <h3>Automatic month colors</h3>
+        <div class="switch-row">
+          <label class="switch">
+            <input id="monthColorCoding" type="checkbox" />
+            <span class="slider"></span>
+          </label>
+          <div>
+            <strong>Color-code months</strong>
+            <small>Apply one subtle color per month automatically.</small>
+          </div>
+        </div>
+
+        <button id="applyMonthColorsBtn" class="btn secondary full-width">Apply month palette now</button>
+      </section>
+
+      <section class="tab-panel" id="tab-advanced">
+        <h2>Advanced display rules</h2>
+
+        <label class="field">
+          <span>Month display</span>
+          <select id="monthDisplay">
+            <option value="pageHeading">Month names in page heading</option>
+            <option value="cellBadge">Month badge on first day only</option>
+            <option value="legendOnly">No month names in cells; use legend</option>
+            <option value="none">Hide month names completely</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Year display</span>
+          <select id="yearDisplay">
+            <option value="pageHeading">Page heading</option>
+            <option value="legend">Legend only</option>
+            <option value="both">Heading and legend</option>
+            <option value="none">Hidden</option>
+          </select>
+        </label>
+
+        <div class="switch-row">
+          <label class="switch">
+            <input id="highlightWeekends" type="checkbox" />
+            <span class="slider"></span>
+          </label>
+          <div>
+            <strong>Highlight weekends</strong>
+            <small>Use a soft background for Saturday and Sunday.</small>
+          </div>
+        </div>
+
+        <div class="field-grid two">
+          <label class="field">
+            <span>Weekend fill</span>
+            <input id="weekendColor" type="color" value="#f8fafc" />
+          </label>
+
+          <label class="field">
+            <span>Global cell fill</span>
+            <input id="globalCellColor" type="color" value="#ffffff" />
+          </label>
+        </div>
+
+        <div class="switch-row">
+          <label class="switch">
+            <input id="showDayIndex" type="checkbox" />
+            <span class="slider"></span>
+          </label>
+          <div>
+            <strong>Show sequential day number</strong>
+            <small>Add Day 1, Day 2, Day 3… inside each cell.</small>
+          </div>
+        </div>
+
+        <label class="field">
+          <span>Sequential label</span>
+          <input id="dayIndexLabel" type="text" value="Day" />
+        </label>
+
+        <div class="switch-row">
+          <label class="switch">
+            <input id="includeBlankCells" type="checkbox" checked />
+            <span class="slider"></span>
+          </label>
+          <div>
+            <strong>Complete the final row</strong>
+            <small>Add empty cells after the final date to preserve the grid.</small>
+          </div>
+        </div>
+
+        <button id="resetBtn" class="btn danger full-width">Reset all settings</button>
+      </section>
+    </aside>
+
+    <section class="workspace">
+      <div class="workspace-toolbar">
+        <div>
+          <strong id="selectionCount">0 days selected</strong>
+          <span id="calendarStats"></span>
+        </div>
+        <div class="zoom-control">
+          <label for="previewZoom">Preview zoom</label>
+          <input id="previewZoom" type="range" min="35" max="120" value="70" />
+          <output id="previewZoomOut">70%</output>
+        </div>
+      </div>
+
+      <div id="previewViewport" class="preview-viewport">
+        <div id="calendarPreview" class="calendar-preview" aria-live="polite"></div>
+      </div>
+    </section>
+  </main>
+
+  <template id="dayCellTemplate">
+    <article class="day-cell">
+      <div class="cell-header">
+        <div>
+          <div class="weekday-label"></div>
+          <div class="date-label"></div>
+        </div>
+        <div class="day-index"></div>
+      </div>
+      <div class="month-badge"></div>
+      <div class="writing-area"></div>
+    </article>
+  </template>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
