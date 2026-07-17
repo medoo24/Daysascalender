@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Calendar Builder</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="app-header">
+    <div>
+      <p class="eyebrow">Printable planning tool</p>
+      <h1>Smart Calendar Builder</h1>
+      <p class="subtitle">Build any-length day table, attach goal boxes, style it, color-code it, and print it as PDF.</p>
+    </div>
+    <div class="header-actions">
+      <button id="undoBtn" class="btn secondary" title="Undo (Ctrl+Z)" disabled>Undo</button>
+      <button id="redoBtn" class="btn secondary" title="Redo (Ctrl+Y or Ctrl+Shift+Z)" disabled>Redo</button>
+      <button id="savePresetBtn" class="btn secondary">Save preset</button>
+      <button id="loadPresetBtn" class="btn secondary">Load preset</button>
+      <button id="exportBtn" class="btn secondary">Export settings</button>
+      <label class="btn secondary file-label">
+        Import settings
+        <input id="importInput" type="file" accept=".json,application/json" hidden />
+      </label>
+      <button id="printBtn" class="btn primary">Print / Save PDF</button>
+    </div>
+  </header>
+
+  <main class="app-shell">
+    <aside class="control-panel" aria-label="Calendar settings">
+      <div class="panel-toolbar">
+        <button class="tab-btn active" data-tab="basic">Basic</button>
+        <button class="tab-btn" data-tab="layout">Layout</button>
+        <button class="tab-btn" data-tab="style">Style</button>
+        <button class="tab-btn" data-tab="colors">Colors</button>
+        <button class="tab-btn" data-tab="advanced">Advanced</button>
+      </div>
+
+      <section class="tab-panel active" id="tab-basic">
+        <h2>Calendar content</h2>
+
+        <div class="field-grid two">
+          <label class="field">
+            <span>Start date</span>
+            <input id="startDate" type="date" />
+          </label>
+
+          <label class="field">
+            <span>Total days</span>
+            <input id="totalDays" type="number" min="1" max="1000" value="70" />
+          </label>
+        </div>
+
+        <div class="field-grid two">
+          <label class="field">
+            <span>Days per row</span>
+            <input id="daysPerRow" type="number" min="1" max="31" value="7" />
+            <small id="daysPerRowHelp">Maximum: 31 days.</small>
+          </label>
+
+          <label class="field">
+            <span>Rows per page</span>
+            <select id="rowsPerPageMode">
+              <option value="auto">Automatic</option>
+              <option value="custom">Custom</option>
+            </select>
+          </label>
+        </div>
+
+        <label class="field" id="customRowsField" hidden>
+          <span>Custom rows per page</span>
+          <input id="rowsPerPage" type="number" min="1" max="40" value="7" />
+          <small>Maximum: 40 rows per page.</small>
+        </label>
+
+        <div class="switch-row">
+          <label class="switch">
+            <input id="showWeekday" type="checkbox" checked />
+            <span class="slider"></span>
+          </label>
+          <div>
+            <strong>Show weekday name</strong>
+            <small>Display the weekday above each date.</small>
+          </div>
+        </div>
+
+        <div class="field-grid two">
+          <label class="field">
+            <span>Date label format</span>
+            <select id="dateFormat">
+              <option value="d/m">17/7</option>
+              <option value="dd/mm">17/07</option>
+              <option value="d">17</option>
+              <option value="d-m">17-7</option>
+              <option value="custom">Custom template</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>Weekday style</span>
+            <select id="weekdayFormat">
+              <option value="short">Mon</option>
+              <option value="long">Monday</option>
+              <option value="narrow">M</option>
+            </select>
+          </label>
+        </div>
+
+        <label class="field" id="customTemplateField" hidden>
+          <span>Custom date template</span>
+          <input id="customTemplate" type="text" value="{d}/{m}" placeholder="{weekdayShort} {d}/{m}" />
+          <small>Tokens: {d}, {dd}, {m}, {mm}, {yy}, {yyyy}, {weekday}, {weekdayShort}</small>
+        </label>
+
+        <label class="field">
+          <span>Calendar title</span>
+          <input id="calendarTitle" type="text" value="70-Day Plan" placeholder="Project plan, study calendar..." />
+        </label>
+
+        <label class="field">
+          <span>Subtitle / note</span>
+          <input id="calendarSubtitle" type="text" value="" placeholder="Optional subtitle" />
+        </label>
+      </section>
+
+      <section class="tab-panel" id="tab-layout">
+        <h2>Page and auto-fit</h2>
+
+        <div class="field-grid two">
+          <label class="field">
+            <span>Paper size</span>
+            <select id="paperSize">
+              <option value="A4">A4</option>
+              <option value="A3">A3</option>
+              <option value="Letter">Letter</option>
+              <option value="Legal">Legal</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>Orientation</span>
+            <select id="orientation">
+              <option value="landscape">Landscape</option>
+              <option value="portrait">Portrait</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="field-grid two">
+          <label class="field">
+            <span>Page margin (mm)</span>
+            <input id="pageMargin" type="number" min="3" max="30" value="10" />
+          </label>
+
+          <label class="field">
+            <span>Cell gap (mm)</span>
+            <input id="cellGap" type="number" min="0" max="10" step="0.5" value="2" />
+          </label>
+        </div>
+
+        <div class="switch-row">
+          <label class="switch">
+            <input id="autoFit" type="checkbox" checked />
+            <span class="slider"></span>
+          </label>
+          <div>
+            <strong>Smart auto-fit</strong>
+            <small>Calculates practical rows, cell height, and text sizes for the chosen paper.</small>
+          </div>
+        </div>
+
+        <div class="field-grid two">
+          <label class="field">
+            <span>Inside each day</span>
+            <select id="writingStyle">
+              <option value="blank">Blank area</option>
+              <option value="lines">Writing lines</option>
+              <option value="dots">Dot grid</option>
+              <option value="checklist">Checkbox + line</option>
+              <option value="checksOnly">Checkboxes only</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>Lines / checkboxes</span>
+            <input id="writingLines" type="number" min="1" max="24" value="4" />
+          </label>
+        </div>
+
+        <label class="field">
+          <span>Day-group minimum height (mm)</span>
+          <input id="cellMinHeight" type="number" min="15" max="150" value="35" />
+        </label>
+
+        <div class="separator"></div>
+        <h3>Companion boxes for each day</h3>
+        <p class="section-note">Attach goal, task, habit, or notes boxes to every date. The date and all attached boxes stay together on the same row.</p>
+
+        <div class="field-grid two">
+          <label class="field">
+            <span>Extra boxes per day</span>
+            <input id="companionBoxCount" type="number" min="0" max="5" value="0" />
+          </label>
+
+          <label class="field">
+            <span>Box position</span>
+            <select id="companionPosition">
+              <option value="beside">Beside the day</option>
+              <option value="below">Below the day</option>
+            </select>
+          </label>
+        </div>
+
+        <label class="field">
+          <span>Box labels</span>
+          <textarea id="companionLabels" rows="3" placeholder="Goal 1, Goal 2, Notes">Goal</textarea>
+          <small>Separate labels with commas or new lines. Missing labels become “Box 1”, “Box 2”…</small>
+        </label>
+
+        <div class="switch-row">
+          <label class="switch">
+            <input id="showCompanionLabels" type="checkbox" checked />
+            <span class="slider"></span>
+          </label>
+          <div>
+            <strong>Show companion labels</strong>
+            <small>Print the label at the top of each attached box.</small>
+          </div>
+        </div>
+
+        <div class="field-grid two">
+          <label class="field">
+            <span>Companion content</span>
+            <select id="companionWritingStyle">
+              <option value="blank">Completely empty</option>
+              <option value="lines">Writing lines</option>
+              <option value="dots">Dot grid</option>
+              <option value="checklist">Checkbox + line</option>
+              <option value="checksOnly">Checkboxes only</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>Lines / checkboxes</span>
+            <input id="companionItems" type="number" min="1" max="24" value="4" />
+          </label>
+        </div>
+
+        <div class="field-grid two">
+          <label class="field">
+            <span>Companion shape</span>
+            <select id="companionBoxShape">
+              <option value="square">Square</option>
+              <option value="soft">Soft corners</option>
+              <option value="rounded" selected>Rounded</option>
+              <option value="extraRounded">Extra rounded</option>
+              <option value="card">Raised card</option>
+              <option value="custom">Use custom radius</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>Companion border</span>
+            <select id="companionBorderStyle">
+              <option value="solid">Solid</option>
+              <option value="dashed">Dashed</option>
+              <option value="dotted">Dotted</option>
+              <option value="double">Double</option>
+              <option value="none">None</option>
+            </select>
+          </label>
+        </div>
+
+        <label class="field">
+          <span>Companion fill</span>
+          <input id="companionFillColor" type="color" value="#ffffff" />
+        </label>
+
+        <div class="fit-summary" id="fitSummary"></div>
+      </section>
+
+      <section class="tab-panel" id="tab-style">
+        <h2>Typography and box styling</h2>
+
+        <div class="range-field">
+          <div><span>Title size</span><output id="titleSizeOut">24px</output></div>
+          <input id="titleSize" type="range" min="14" max="48" value="24" />
+        </div>
+
+        <div class="range-field">
+          <div><span>Date size</span><output id="dateSizeOut">18px</output></div>
+          <input id="dateSize" type="range" min="10" max="36" value="18" />
+        </div>
+
+        <div class="range-field">
+          <div><span>Weekday size</span><output id="weekdaySizeOut">11px</output></div>
+          <input id="weekdaySize" type="range" min="8" max="24" value="11" />
+        </div>
+
+        <div class="range-field">
+          <div><span>Year size</span><output id="yearSizeOut">14px</output></div>
+          <input id="yearSize" type="range" min="10" max="32" value="14" />
+        </div>
+
+        <div class="field-grid two">
+          <label class="field">
+            <span>Day box shape</span>
+            <select id="dayBoxShape">
+              <option value="square">Square</option>
+              <option value="soft">Soft corners</option>
+              <option value="rounded" selected>Rounded</option>
+              <option value="extraRounded">Extra rounded</option>
+              <option value="card">Raised card</option>
+              <option value="custom">Custom radius</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>Day border style</span>
+            <select id="dayBorderStyle">
+              <option value="solid">Solid</option>
+              <option value="dashed">Dashed</option>
+              <option value="dotted">Dotted</option>
+              <option value="double">Double</option>
+              <option value="none">None</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="range-field">
+          <div><span>Cell border width</span><output id="borderWidthOut">1px</output></div>
+          <input id="borderWidth" type="range" min="0" max="5" value="1" />
+        </div>
+
+        <div class="range-field">
+          <div><span>Custom corner radius</span><output id="cornerRadiusOut">8px</output></div>
+          <input id="cornerRadius" type="range" min="0" max="30" value="8" />
+        </div>
+
+        <div class="field-grid two">
+          <label class="field">
+            <span>Font family</span>
+            <select id="fontFamily">
+              <option value="system">System sans</option>
+              <option value="serif">Classic serif</option>
+              <option value="mono">Monospace</option>
+              <option value="rounded">Rounded</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>Date alignment</span>
+            <select id="dateAlignment">
+              <option value="left">Left</option>
+              <option value="center">Center</option>
+              <option value="right">Right</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="switch-row">
+          <label class="switch">
+            <input id="boldYear" type="checkbox" checked />
+            <span class="slider"></span>
+          </label>
+          <div>
+            <strong>Bold year</strong>
+            <small>Show each year only once after its included months, using bold text.</small>
+          </div>
+        </div>
+
+        <div class="switch-row">
+          <label class="switch">
+            <input id="showPageNumber" type="checkbox" checked />
+            <span class="slider"></span>
+          </label>
+          <div>
+            <strong>Show page number</strong>
+            <small>Add a small page counter in the footer.</small>
+          </div>
+        </div>
+      </section>
+
+      <section class="tab-panel" id="tab-colors">
+        <h2>Selection and color coding</h2>
+
+        <div class="selection-help">
+          Click a day to select it. Use <kbd>Shift</kbd> + click for a range, drag across cells, or press <kbd>Ctrl</kbd> + <kbd>Z</kbd> to undo.
+        </div>
+
+        <div class="field-grid two">
+          <label class="field">
+            <span>Active fill color</span>
+            <input id="activeColor" type="color" value="#dbeafe" />
+          </label>
+
+          <label class="field">
+            <span>Text color</span>
+            <input id="activeTextColor" type="color" value="#172033" />
+          </label>
+        </div>
+
+        <div class="color-actions">
+          <button id="colorSelectedBtn" class="btn primary">Color selected</button>
+          <button id="clearSelectedColorBtn" class="btn secondary">Clear selected color</button>
+          <button id="clearSelectionBtn" class="btn secondary">Clear selection</button>
+        </div>
+
+        <div class="separator"></div>
+        <h3>Global and background colors</h3>
+
+        <div class="switch-row">
+          <label class="switch">
+            <input id="highlightWeekends" type="checkbox" />
+            <span class="slider"></span>
+          </label>
+          <div>
+            <strong>Highlight configured weekend days</strong>
+            <small>Weekend days themselves are selected in Advanced settings.</small>
+          </div>
+        </div>
+
+        <div class="field-grid two">
+          <label class="field">
+            <span>Weekend fill</span>
+            <input id="weekendColor" type="color" value="#f8fafc" />
+          </label>
+
+          <label class="field">
+            <span>Global day-box fill</span>
+            <input id="globalCellColor" type="color" value="#ffffff" />
+          </label>
+        </div>
+
+        <label class="field">
+          <span>Page and empty-space background</span>
+          <input id="pageBackgroundColor" type="color" value="#ffffff" />
+          <small>Colors the paper and the visible gaps around and between boxes, not the boxes themselves.</small>
+        </label>
+
+        <div class="separator"></div>
+        <h3>Mass selection</h3>
+
+        <label class="field">
+          <span>Selection rule</span>
+          <select id="massRule">
+            <option value="dateRange">Date range</option>
+            <option value="weekday">Weekday</option>
+            <option value="month">Month</option>
+            <option value="everyNth">Every Nth day</option>
+            <option value="all">All days</option>
+          </select>
+        </label>
+
+        <div id="ruleDateRange" class="rule-panel">
+          <div class="field-grid two">
+            <label class="field">
+              <span>From</span>
+              <input id="rangeStart" type="date" />
+            </label>
+            <label class="field">
+              <span>To</span>
+              <input id="rangeEnd" type="date" />
+            </label>
+          </div>
+        </div>
+
+        <div id="ruleWeekday" class="rule-panel" hidden>
+          <label class="field">
+            <span>Weekday</span>
+            <select id="weekdayRule">
+              <option value="0">Sunday</option>
+              <option value="1">Monday</option>
+              <option value="2">Tuesday</option>
+              <option value="3">Wednesday</option>
+              <option value="4">Thursday</option>
+              <option value="5">Friday</option>
+              <option value="6">Saturday</option>
+            </select>
+          </label>
+        </div>
+
+        <div id="ruleMonth" class="rule-panel" hidden>
+          <label class="field">
+            <span>Month</span>
+            <select id="monthRule"></select>
+          </label>
+        </div>
+
+        <div id="ruleEveryNth" class="rule-panel" hidden>
+          <div class="field-grid two">
+            <label class="field">
+              <span>Every N days</span>
+              <input id="nthValue" type="number" min="2" max="100" value="7" />
+            </label>
+            <label class="field">
+              <span>Starting at day</span>
+              <input id="nthStart" type="number" min="1" value="1" />
+            </label>
+          </div>
+        </div>
+
+        <div class="color-actions">
+          <button id="selectByRuleBtn" class="btn secondary">Select matching days</button>
+          <button id="colorByRuleBtn" class="btn primary">Color matching days</button>
+        </div>
+
+        <div class="separator"></div>
+        <h3>Months</h3>
+        <p class="section-note">These are direct actions. Applying month colors overwrites the fill of every generated day, regardless of earlier coloring.</p>
+        <div class="action-pair">
+          <button id="applyMonthColorsBtn" class="btn primary">Apply month colors</button>
+          <button id="toggleMonthNamesBtn" class="btn secondary">Write month names</button>
+        </div>
+      </section>
+
+      <section class="tab-panel" id="tab-advanced">
+        <h2>Advanced display rules</h2>
+
+        <label class="field">
+          <span>Month display</span>
+          <select id="monthDisplay">
+            <option value="pageHeading">Month names in page heading</option>
+            <option value="cellBadge">Month badge on first day only</option>
+            <option value="legendOnly">No month names in cells; use legend</option>
+            <option value="none">Hide month names completely</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Year display</span>
+          <select id="yearDisplay">
+            <option value="pageHeading">Page heading</option>
+            <option value="legend">Legend only</option>
+            <option value="both">Heading and legend</option>
+            <option value="none">Hidden</option>
+          </select>
+        </label>
+
+        <fieldset class="weekday-picker">
+          <legend>Which days count as weekends?</legend>
+          <label><input class="weekend-day-input" type="checkbox" value="0" checked /> Sun</label>
+          <label><input class="weekend-day-input" type="checkbox" value="1" /> Mon</label>
+          <label><input class="weekend-day-input" type="checkbox" value="2" /> Tue</label>
+          <label><input class="weekend-day-input" type="checkbox" value="3" /> Wed</label>
+          <label><input class="weekend-day-input" type="checkbox" value="4" /> Thu</label>
+          <label><input class="weekend-day-input" type="checkbox" value="5" /> Fri</label>
+          <label><input class="weekend-day-input" type="checkbox" value="6" checked /> Sat</label>
+        </fieldset>
+
+        <div class="switch-row">
+          <label class="switch">
+            <input id="showDayIndex" type="checkbox" />
+            <span class="slider"></span>
+          </label>
+          <div>
+            <strong>Show sequential day number</strong>
+            <small>Add Day 1, Day 2, Day 3… inside each cell.</small>
+          </div>
+        </div>
+
+        <label class="field">
+          <span>Sequential label</span>
+          <input id="dayIndexLabel" type="text" value="Day" />
+        </label>
+
+        <div class="switch-row">
+          <label class="switch">
+            <input id="includeBlankCells" type="checkbox" checked />
+            <span class="slider"></span>
+          </label>
+          <div>
+            <strong>Complete the final row</strong>
+            <small>Add empty day groups after the final date to preserve the grid.</small>
+          </div>
+        </div>
+
+        <button id="resetBtn" class="btn danger full-width">Reset all settings</button>
+      </section>
+    </aside>
+
+    <section class="workspace">
+      <div class="workspace-toolbar">
+        <div>
+          <strong id="selectionCount">0 days selected</strong>
+          <span id="calendarStats"></span>
+        </div>
+        <div class="zoom-control">
+          <label for="previewZoom">Preview zoom</label>
+          <input id="previewZoom" type="range" min="35" max="120" value="70" />
+          <output id="previewZoomOut">70%</output>
+        </div>
+      </div>
+
+      <div id="previewViewport" class="preview-viewport">
+        <div id="calendarPreview" class="calendar-preview" aria-live="polite"></div>
+      </div>
+    </section>
+  </main>
+
+  <template id="dayCellTemplate">
+    <article class="day-cell box-surface">
+      <div class="cell-header">
+        <div>
+          <div class="weekday-label"></div>
+          <div class="date-label"></div>
+        </div>
+        <div class="day-index"></div>
+      </div>
+      <div class="month-badge"></div>
+      <div class="writing-area"></div>
+    </article>
+  </template>
+
+  <template id="companionBoxTemplate">
+    <article class="companion-box box-surface">
+      <div class="companion-label"></div>
+      <div class="writing-area"></div>
+    </article>
+  </template>
+
+  <dialog id="presetDialog" class="preset-dialog">
+    <form method="dialog" class="dialog-card">
+      <div class="dialog-heading">
+        <div>
+          <p class="eyebrow">Browser presets</p>
+          <h2 id="presetDialogTitle">Manage presets</h2>
+        </div>
+        <button class="icon-btn" value="cancel" aria-label="Close">×</button>
+      </div>
+
+      <label class="field">
+        <span>Preset name</span>
+        <input id="presetName" type="text" maxlength="80" placeholder="e.g. 90-day study plan" />
+      </label>
+      <button id="confirmSavePresetBtn" type="button" class="btn primary full-width">Save current calendar</button>
+
+      <div class="separator"></div>
+      <div id="presetList" class="preset-list"></div>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
